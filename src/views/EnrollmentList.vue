@@ -4,12 +4,17 @@
       <template #header>
         <div class="clearfix">
           <span>选课列表</span>
-          <el-button style="float: right; padding: 3px 0" type="primary" @click="openAddDialog">
+          <el-button 
+            style="float: right; padding: 3px 0" 
+            type="primary" 
+            @click="openAddDialog"
+          >
             <el-icon><Plus /></el-icon>新增选课
           </el-button>
         </div>
       </template>
-      
+
+      <!-- 查询表单 -->
       <el-form :inline="true" :model="filterForm" class="demo-form-inline">
         <el-form-item label="教师">
           <el-input v-model="filterForm.teacherId" placeholder="请输入教师编号" />
@@ -34,7 +39,8 @@
           <el-button @click="resetFilter">重置</el-button>
         </el-form-item>
       </el-form>
-      
+
+      <!-- 数据表格 -->
       <el-table :data="enrollments" stripe border style="width: 100%">
         <el-table-column type="index" width="50" />
         <el-table-column prop="enrollmentId" label="选课ID" width="200" />
@@ -61,16 +67,25 @@
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template #default="scope">
-            <el-button size="small" type="primary" @click="editEnrollment(scope.row)">
+            <el-button 
+              size="small" 
+              type="primary" 
+              @click="editEnrollment(scope.row)"
+            >
               <el-icon><Edit /></el-icon>编辑
             </el-button>
-            <el-button size="small" type="danger" @click="deleteEnrollment(scope.row.enrollmentId)">
+            <el-button 
+              size="small" 
+              type="danger" 
+              @click="deleteEnrollment(scope.row.enrollmentId)"
+            >
               <el-icon><Delete /></el-icon>删除
             </el-button>
           </template>
         </el-table-column>
       </el-table>
-      
+
+      <!-- 分页组件 -->
       <el-pagination
         style="margin-top: 20px"
         background
@@ -83,45 +98,82 @@
         :total="total"
       />
     </el-card>
-    
+
+    <!-- 对话框 -->
     <el-dialog v-model="dialogVisible" title="选课信息">
-      <el-form :model="enrollmentForm" ref="formRef" label-width="120px">
+      <el-form 
+        :model="enrollmentForm" 
+        ref="formRef" 
+        label-width="120px"
+      >
         <el-input type="hidden" v-model="enrollmentForm.enrollmentId" />
-        <el-form-item label="学生" prop="studentId">
-          <el-select v-model="enrollmentForm.studentId" placeholder="请选择学生" clearable>
+
+        <!-- 学生选择 -->
+        <el-form-item label="学号" prop="studentId">
+          <el-select 
+            v-model="enrollmentForm.studentId" 
+            placeholder="请输入姓名及学号" 
+            clearable
+            :disabled="!!enrollmentForm.enrollmentId"
+          >
             <el-option
               v-for="student in students"
               :key="student.studentId"
-              :label="`${student.name} (${student.studentId})`"
+              :label="student.name + ' (' + student.studentId + ')'"
               :value="student.studentId"
             />
           </el-select>
         </el-form-item>
+
+        <!-- 课程选择 -->
         <el-form-item label="课程" prop="courseId">
-          <el-select v-model="enrollmentForm.courseId" placeholder="请选择课程" clearable>
+          <el-select 
+            v-model="enrollmentForm.courseId" 
+            placeholder="请选择课程" 
+            clearable
+            :disabled="!!enrollmentForm.enrollmentId"
+          >
             <el-option
               v-for="course in courses"
               :key="course.courseId"
-              :label="`${course.courseName} (${course.courseId})`"
+              :label="course.courseName + ' (' + course.courseId + ')'"
               :value="course.courseId"
             />
           </el-select>
         </el-form-item>
+
+        <!-- 教师编号 -->
         <el-form-item label="教师编号" prop="teacherId">
-          <el-input v-model="enrollmentForm.teacherId" placeholder="教师编号" readonly />
+          <el-input 
+            v-model="enrollmentForm.teacherId" 
+            placeholder="教师编号" 
+            readonly 
+          />
         </el-form-item>
+
+        <!-- 学年 -->
         <el-form-item label="学年" prop="year">
           <el-input v-model.number="enrollmentForm.year" placeholder="请输入学年" />
         </el-form-item>
+
+        <!-- 学期 -->
         <el-form-item label="学期" prop="term">
           <el-select v-model="enrollmentForm.term" placeholder="请选择学期">
             <el-option label="第一学期" value="1" />
             <el-option label="第二学期" value="2" />
           </el-select>
         </el-form-item>
+
+        <!-- 成绩输入 -->
         <el-form-item label="成绩" prop="score">
-          <el-input v-model.number="enrollmentForm.score" placeholder="请输入成绩（0-100）" />
+          <el-input 
+            v-model.number="enrollmentForm.score" 
+            placeholder="请输入成绩（0-100）"
+            :disabled="!enrollmentForm.enrollmentId" 
+          />
         </el-form-item>
+
+        <!-- 状态选择 -->
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="enrollmentForm.status">
             <el-radio :label="'finished'">已完成</el-radio>
@@ -129,6 +181,8 @@
           </el-radio-group>
         </el-form-item>
       </el-form>
+
+      <!-- 对话框底部按钮 -->
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="submitForm">确定</el-button>
@@ -138,12 +192,13 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted } from 'vue' // 移除未使用的nextTick
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import api from '@/api'
 
 export default {
   setup() {
+    // 响应式数据
     const enrollments = ref([])
     const students = ref([])
     const courses = ref([])
@@ -152,7 +207,7 @@ export default {
     const currentPage = ref(1)
     const pageSize = ref(10)
     const total = ref(0)
-    
+
     const filterForm = reactive({
       studentId: '',
       courseId: '',
@@ -160,7 +215,7 @@ export default {
       year: '',
       term: ''
     })
-    
+
     const enrollmentForm = reactive({
       enrollmentId: null,
       studentId: '',
@@ -172,6 +227,7 @@ export default {
       status: 'ongoing'
     })
 
+    // 数据获取
     const fetchEnrollments = async () => {
       try {
         const params = {
@@ -179,7 +235,6 @@ export default {
           size: pageSize.value,
           ...filterForm
         }
-        
         const res = await api.get('/enrollments', { params })
         enrollments.value = res.data || []
         total.value = res.data.length || 0
@@ -192,7 +247,7 @@ export default {
     const fetchStudents = async () => {
       try {
         const res = await api.get('/students')
-        students.value = res.data.list || []
+        students.value = res.data || []
       } catch (error) {
         console.error('获取学生列表错误:', error)
       }
@@ -201,12 +256,13 @@ export default {
     const fetchCourses = async () => {
       try {
         const res = await api.get('/courses')
-        courses.value = res.data.list || []
+        courses.value = res.data || []
       } catch (error) {
         console.error('获取课程列表错误:', error)
       }
     }
 
+    // 表单操作
     const openAddDialog = () => {
       enrollmentForm.enrollmentId = null
       enrollmentForm.studentId = ''
@@ -216,9 +272,8 @@ export default {
       enrollmentForm.term = 1
       enrollmentForm.score = null
       enrollmentForm.status = 'ongoing'
-      
       dialogVisible.value = true
-      formRef.value?.resetFields() // 移除nextTick，直接调用resetFields
+      formRef.value?.resetFields()
     }
 
     const editEnrollment = (enrollment) => {
@@ -229,15 +284,10 @@ export default {
     const deleteEnrollment = async (enrollmentId) => {
       try {
         await ElMessageBox.confirm(
-          `确定要删除该选课记录吗？`,
+          '确定要删除该选课记录吗？',
           '提示',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
+          { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
         )
-        
         await api.delete(`/enrollments/${enrollmentId}`)
         ElMessage.success('删除成功')
         fetchEnrollments()
@@ -255,15 +305,20 @@ export default {
           ElMessage.warning('学生和课程不能为空')
           return
         }
-        
+
+        // 构造请求数据
         const formData = {
           studentId: enrollmentForm.studentId,
           courseId: enrollmentForm.courseId,
           teacherId: enrollmentForm.teacherId,
           year: enrollmentForm.year,
           term: enrollmentForm.term,
-          score: enrollmentForm.score,
           status: enrollmentForm.status
+        }
+
+        // 仅在编辑时包含 score 字段
+        if (enrollmentForm.enrollmentId) {
+          formData.score = enrollmentForm.score
         }
 
         if (enrollmentForm.enrollmentId) {
@@ -273,7 +328,7 @@ export default {
           await api.post('/enrollments', formData)
           ElMessage.success('添加成功')
         }
-        
+
         dialogVisible.value = false
         fetchEnrollments()
       } catch (error) {
@@ -282,6 +337,7 @@ export default {
       }
     }
 
+    // 查询重置
     const resetFilter = () => {
       filterForm.studentId = ''
       filterForm.courseId = ''
@@ -291,6 +347,7 @@ export default {
       fetchEnrollments()
     }
 
+    // 分页处理
     const handleSizeChange = (newSize) => {
       pageSize.value = newSize
       fetchEnrollments()
@@ -301,6 +358,7 @@ export default {
       fetchEnrollments()
     }
 
+    // 初始化
     onMounted(() => {
       fetchEnrollments()
       fetchStudents()
@@ -319,7 +377,7 @@ export default {
       filterForm,
       enrollmentForm,
       fetchEnrollments,
-      fetchStudents, // 添加未定义的函数
+      fetchStudents,
       fetchCourses,
       openAddDialog,
       editEnrollment,
@@ -337,7 +395,6 @@ export default {
 .box-card {
   margin: 20px;
 }
-
 .demo-form-inline {
   margin-bottom: 20px;
 }
