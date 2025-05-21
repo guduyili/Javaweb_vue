@@ -84,7 +84,7 @@
       />
     </el-card>
     
-    <el-dialog v-model:visible="dialogVisible" title="选课信息">
+    <el-dialog v-model="dialogVisible" title="选课信息">
       <el-form :model="enrollmentForm" ref="formRef" label-width="120px">
         <el-input type="hidden" v-model="enrollmentForm.enrollmentId" />
         <el-form-item label="学生" prop="studentId">

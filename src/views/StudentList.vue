@@ -47,7 +47,7 @@
       />
     </el-card>
     
-    <el-dialog v-model:visible="dialogVisible" title="学生信息">
+    <el-dialog v-model="dialogVisible" title="学生信息">
       <el-form :model="studentForm" ref="formRef" label-width="120px">
         <el-form-item label="学号" prop="studentId">
           <el-input v-model="studentForm.studentId" placeholder="请输入学号" />
@@ -106,7 +106,7 @@ export default {
       phone: ''
     })
 
-    // 获取学生列表（移除/sms前缀）
+    // 获取学生列表
     const fetchStudents = async () => {
       try {
         const res = await api.get(`/students?page=${currentPage.value}&size=${pageSize.value}`)
@@ -136,16 +136,16 @@ export default {
     const editStudent = (student) => {
       studentForm.studentId = student.studentId
       studentForm.name = student.name
-      studentForm.gender = student.gender
       studentForm.department = student.department
       studentForm.major = student.major
       studentForm.grade = student.grade
+      studentForm.gender = student.gender
       studentForm.phone = student.phone
       
       dialogVisible.value = true
     }
 
-    // 删除学生（移除/sms前缀）
+    // 删除学生
     const deleteStudent = async (student) => {
       try {
         await ElMessageBox.confirm(
@@ -169,7 +169,7 @@ export default {
       }
     }
 
-    // 提交表单（移除/sms前缀）
+    // 提交表单
     const submitForm = async () => {
       try {
         if (!studentForm.studentId || !studentForm.name || !studentForm.grade || !studentForm.phone) {
@@ -188,6 +188,7 @@ export default {
         } else {
           // 添加学生
           await api.post('/students', formData)
+          console.log(formData)
           ElMessage.success('添加成功')
         }
         

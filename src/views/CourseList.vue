@@ -42,7 +42,7 @@
       />
     </el-card>
     
-    <el-dialog v-model:visible="dialogVisible" title="课程信息">
+    <el-dialog v-model="dialogVisible" title="课程信息">
       <el-form :model="courseForm" ref="formRef" label-width="120px">
         <el-form-item label="课程编号" prop="courseId">
           <el-input v-model="courseForm.courseId" placeholder="请输入课程编号" />
