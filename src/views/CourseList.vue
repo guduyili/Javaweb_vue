@@ -4,9 +4,9 @@
       <template #header>
         <div class="clearfix">
           <span>课程列表</span>
-          <el-button style="float: right; padding: 3px 0" type="primary" @click="openAddDialog">
+          <!-- <el-button style="float: right; padding: 3px 0" type="primary" @click="openAddDialog">
             <el-icon><Plus /></el-icon>添加课程
-          </el-button>
+          </el-button> -->
         </div>
       </template>
       
@@ -17,7 +17,7 @@
         <el-table-column prop="credit" label="学分" width="80" />
         <el-table-column prop="period" label="课时" width="80" />
         <el-table-column prop="courseType" label="课程类型" width="100" />
-        <el-table-column label="操作" width="200">
+        <!-- <el-table-column label="操作" width="200">
           <template #default="scope">
             <el-button size="small" type="primary" @click="editCourse(scope.row)">
               <el-icon><Edit /></el-icon>编辑
@@ -26,7 +26,7 @@
               <el-icon><Delete /></el-icon>删除
             </el-button>
           </template>
-        </el-table-column>
+        </el-table-column> -->
       </el-table>
       
       <el-pagination

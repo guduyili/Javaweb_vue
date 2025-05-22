@@ -4,11 +4,7 @@
       <template #header>
         <div class="clearfix">
           <span>选课列表</span>
-          <el-button 
-            style="float: right; padding: 3px 0" 
-            type="primary" 
-            @click="openAddDialog"
-          >
+          <el-button style="float: right; padding: 3px 0" type="primary" @click="openAddDialog">
             <el-icon><Plus /></el-icon>新增选课
           </el-button>
         </div>
@@ -43,7 +39,7 @@
       <!-- 数据表格 -->
       <el-table :data="enrollments" stripe border style="width: 100%">
         <el-table-column type="index" width="50" />
-        <el-table-column prop="enrollmentId" label="选课ID" width="200" />
+        <el-table-column prop="studentName" label="学生姓名" width="120" />
         <el-table-column prop="studentId" label="学号" width="120" />
         <el-table-column prop="courseId" label="课程编号" width="120" />
         <el-table-column prop="teacherId" label="教师编号" width="100" />
@@ -65,24 +61,6 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
-          <template #default="scope">
-            <el-button 
-              size="small" 
-              type="primary" 
-              @click="editEnrollment(scope.row)"
-            >
-              <el-icon><Edit /></el-icon>编辑
-            </el-button>
-            <el-button 
-              size="small" 
-              type="danger" 
-              @click="deleteEnrollment(scope.row.enrollmentId)"
-            >
-              <el-icon><Delete /></el-icon>删除
-            </el-button>
-          </template>
-        </el-table-column>
       </el-table>
 
       <!-- 分页组件 -->
@@ -101,20 +79,17 @@
 
     <!-- 对话框 -->
     <el-dialog v-model="dialogVisible" title="选课信息">
-      <el-form 
-        :model="enrollmentForm" 
-        ref="formRef" 
-        label-width="120px"
-      >
+      <el-form :model="enrollmentForm" ref="formRef" label-width="120px">
         <el-input type="hidden" v-model="enrollmentForm.enrollmentId" />
 
-        <!-- 学生选择 -->
-        <el-form-item label="学号" prop="studentId">
+        <!-- 学生选择（关键修改点：绑定studentId并自动获取studentName） -->
+        <el-form-item label="学生" prop="studentId">
           <el-select 
             v-model="enrollmentForm.studentId" 
-            placeholder="请输入姓名及学号" 
+            placeholder="请选择学生（姓名+学号）" 
             clearable
             :disabled="!!enrollmentForm.enrollmentId"
+            @change="handleStudentChange"
           >
             <el-option
               v-for="student in students"
@@ -207,8 +182,10 @@ export default {
     const currentPage = ref(1)
     const pageSize = ref(10)
     const total = ref(0)
+    const studentMap = ref(new Map()) // 学生ID到学生对象的映射
 
     const filterForm = reactive({
+      studentName: '',
       studentId: '',
       courseId: '',
       teacherId: '',
@@ -218,7 +195,8 @@ export default {
 
     const enrollmentForm = reactive({
       enrollmentId: null,
-      studentId: '',
+      studentName: '', // 学生姓名（新增字段）
+      studentId: '',   // 学生ID
       courseId: '',
       teacherId: '',
       year: new Date().getFullYear(),
@@ -227,7 +205,7 @@ export default {
       status: 'ongoing'
     })
 
-    // 数据获取
+    // 获取选课列表
     const fetchEnrollments = async () => {
       try {
         const params = {
@@ -244,15 +222,19 @@ export default {
       }
     }
 
+    // 获取学生列表并构建映射
     const fetchStudents = async () => {
       try {
         const res = await api.get('/students')
         students.value = res.data || []
+        // 构建学生ID到对象的映射（优化查询效率）
+        studentMap.value = new Map(students.value.map(student => [student.studentId, student]))
       } catch (error) {
         console.error('获取学生列表错误:', error)
       }
     }
 
+    // 获取课程列表
     const fetchCourses = async () => {
       try {
         const res = await api.get('/courses')
@@ -262,12 +244,13 @@ export default {
       }
     }
 
-    // 表单操作
+    // 打开添加对话框
     const openAddDialog = () => {
       enrollmentForm.enrollmentId = null
+      enrollmentForm.studentName = '' // 重置学生姓名
       enrollmentForm.studentId = ''
       enrollmentForm.courseId = ''
-      enrollmentForm.teacherId = ''
+      enrollmentForm.teacherId = 'T001'
       enrollmentForm.year = new Date().getFullYear()
       enrollmentForm.term = 1
       enrollmentForm.score = null
@@ -276,11 +259,19 @@ export default {
       formRef.value?.resetFields()
     }
 
+    // 学生选择变化时自动获取姓名
+    const handleStudentChange = (studentId) => {
+      const student = studentMap.value.get(studentId)
+      enrollmentForm.studentName = student?.name || ''
+    }
+
+    // 编辑选课
     const editEnrollment = (enrollment) => {
       Object.assign(enrollmentForm, enrollment)
       dialogVisible.value = true
     }
 
+    // 删除选课
     const deleteEnrollment = async (enrollmentId) => {
       try {
         await ElMessageBox.confirm(
@@ -299,6 +290,7 @@ export default {
       }
     }
 
+    // 提交表单
     const submitForm = async () => {
       try {
         if (!enrollmentForm.studentId || !enrollmentForm.courseId) {
@@ -306,8 +298,9 @@ export default {
           return
         }
 
-        // 构造请求数据
+        // 构造包含studentName的请求数据
         const formData = {
+          studentName: enrollmentForm.studentName,
           studentId: enrollmentForm.studentId,
           courseId: enrollmentForm.courseId,
           teacherId: enrollmentForm.teacherId,
@@ -316,7 +309,7 @@ export default {
           status: enrollmentForm.status
         }
 
-        // 仅在编辑时包含 score 字段
+        // 仅在编辑时包含score字段
         if (enrollmentForm.enrollmentId) {
           formData.score = enrollmentForm.score
         }
@@ -337,7 +330,7 @@ export default {
       }
     }
 
-    // 查询重置
+    // 重置查询条件
     const resetFilter = () => {
       filterForm.studentId = ''
       filterForm.courseId = ''
@@ -358,11 +351,11 @@ export default {
       fetchEnrollments()
     }
 
-    // 初始化
-    onMounted(() => {
-      fetchEnrollments()
-      fetchStudents()
-      fetchCourses()
+    // 初始化数据
+    onMounted(async () => {
+      await fetchEnrollments()
+      await fetchStudents()
+      await fetchCourses()
     })
 
     return {
@@ -385,7 +378,8 @@ export default {
       submitForm,
       resetFilter,
       handleSizeChange,
-      handleCurrentChange
+      handleCurrentChange,
+      handleStudentChange
     }
   }
 }

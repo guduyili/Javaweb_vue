@@ -13,17 +13,17 @@
           <el-icon><House /></el-icon>
           <span>首页</span>
         </el-menu-item>
-        <el-menu-item index="/students">
+        <!-- <el-menu-item index="/students">
           <el-icon><User /></el-icon>
           <span>学生管理</span>
-        </el-menu-item>
+        </el-menu-item> -->
         <el-menu-item index="/courses">
           <el-icon><Notebook /></el-icon>
-          <span>课程管理</span>
+          <span>课程详情</span>
         </el-menu-item>
         <el-menu-item index="/enrollments">
           <el-icon><Document /></el-icon>
-          <span>选课管理</span>
+          <span>学生选课</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -38,7 +38,7 @@
             <el-dropdown @command="handleCommand">
               <span class="el-dropdown-link">
                 <el-icon><Avatar /></el-icon>
-                管理员 <el-icon><CaretBottom /></el-icon>
+                用户 <el-icon><CaretBottom /></el-icon>
               </span>
               <template #dropdown>
                 <el-dropdown-menu>

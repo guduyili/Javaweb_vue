@@ -20,14 +20,14 @@
           </div>
           
           <div class="quick-links">
-            <el-button type="primary" @click="navigateTo('StudentList')">
+            <!-- <el-button type="primary" @click="navigateTo('StudentList')">
               <el-icon><User /></el-icon>学生管理
-            </el-button>
+            </el-button> -->
             <el-button type="primary" @click="navigateTo('CourseList')">
-              <el-icon><Notebook /></el-icon>课程管理
+              <el-icon><Notebook /></el-icon>课程详情
             </el-button>
             <el-button type="primary" @click="navigateTo('EnrollmentList')">
-              <el-icon><Document /></el-icon>选课管理
+              <el-icon><Document /></el-icon>学生选课
             </el-button>
           </div>
         </div>
@@ -45,9 +45,9 @@ export default {
   setup() {
     const router = useRouter()
     const stats = ref([
-      { label: '学生总数', value: 0 },
-      { label: '课程总数', value: 0 },
-      { label: '选课记录', value: 0 }
+      { label: '学生总数', value: 7 },
+      { label: '课程总数', value: 12 },
+      { label: '选课记录', value: 8 }
     ])
 
     const fetchStats = async () => {
